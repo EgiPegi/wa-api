@@ -1,0 +1,25 @@
+{
+  "name": "WA-API-EGIPEGI",
+  "version": "1.0.0",
+  "description": "Whatsapp API by EgiPegi",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "repository": "git@github.com:EgiPegi/wa-api.git",
+  "author": "EgiPegi",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.23.0",
+    "express": "^4.17.1",
+    "express-fileupload": "^1.2.1",
+    "express-validator": "^6.13.0",
+    "http": "^0.0.1-security",
+    "mime-types": "^2.1.33",
+    "qrcode": "^1.4.4",
+    "qrcode-terminal": "^0.12.0",
+    "socket.io": "^4.2.0",
+    "whatsapp-web.js": "^1.14.1"
+  }
+}

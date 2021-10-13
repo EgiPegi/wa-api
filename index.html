@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard || Whatsapp API By EgiPegi</title>
+  </head>
+  <body>
+    <div id="app">
+      <h1>Whatsapp API</h1>
+      <p>By EgiPegi</p>
+      <img src="" alt="qrcode-auth" id="qrcode" />
+      <h4>Status :</h4>
+      <ul class="status"></ul>
+    </div>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+      integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.min.js"
+      integrity="sha512-2hIBfT6wur46uR5ayhmyICuA8s15BvJhagB+jZImgktQAy832P7EuY8njl1HGp4YS0Sk8DXRo9dByhvD3jfDxA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script>
+      $(document).ready(() => {
+        var socket = io.connect("http://localhost:8000", {
+          path: "/socket.io",
+        });
+
+        socket.on("message", (msg) => {
+          console.log(msg);
+          $(".status").append($("<li>").text(msg));
+        });
+
+        socket.on("qr", (url) => {
+          $("#qrcode").attr("src", url);
+        });
+
+        socket.on("ready", (url) => {
+          $("#qrcode").hide();
+        });
+
+        socket.on("authenticated", (url) => {
+          $("#qrcode").hide();
+        });
+      });
+    </script>
+  </body>
+</html>
