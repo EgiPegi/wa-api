@@ -1,6 +1,6 @@
 const express = require("express");
 const socketIO = require("socket.io");
-const { Client } = require("whatsapp-web.js");
+const { Client, MessageMedia } = require("whatsapp-web.js");
 const qrcode = require("qrcode");
 const fs = require("fs");
 const http = require("http");
@@ -23,7 +23,20 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
 }
 
 const client = new Client({
-  puppeteer: { headless: true },
+  restartOnAuthFail: true,
+  puppeteer: {
+    headless: true,
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-accelerated-2d-canvas",
+      "--no-first-run",
+      "--no-zygote",
+      // "--single-process", // <- this one doesn't works in Windows
+      "--disable-gpu",
+    ],
+  },
   session: sessionCfg,
 });
 
@@ -39,6 +52,8 @@ client.on("auth_failure", (msg) => {
 client.on("message", (msg) => {
   if (msg.body == "halo") {
     msg.reply("Test Auto Reply WHATSAPP API");
+  } else if (msg.body == "gi") {
+    msg.reply("oi");
   }
 });
 
@@ -77,14 +92,72 @@ io.on("connection", (socket) => {
   });
 });
 
+//checking nomer WA apakah sudah teregister atau belum
+const checkRegisteredNumber = async function (number) {
+  const isRegistered = await client.isRegisteredUser(number);
+  return isRegistered;
+};
+
+//number formater
+const phoneNumberFormatter = function (number) {
+  // 1. Menghilangkan karakter selain angka
+  let formatted = number.replace(/\D/g, "");
+
+  // 2. Menghilangkan angka 0 di depan (prefix)
+  //    Kemudian diganti dengan 62
+  if (formatted.startsWith("0")) {
+    formatted = "62" + formatted.substr(1);
+  }
+
+  if (!formatted.endsWith("@c.us")) {
+    formatted += "@c.us";
+  }
+
+  return formatted;
+};
+
 //routing
-app.post("/wa-send", (req, res, next) => {
-  const no = req.body.no;
+app.post("/wa-send", async (req, res, next) => {
+  const no = phoneNumberFormatter(req.body.no);
   const pesan = req.body.pesan;
   //   res.send(req.body)
 
+  const isRegisteredNumber = await checkRegisteredNumber(no);
+  if (!isRegisteredNumber) {
+    return res.status(422).json({
+      status: false,
+      message: "Nomer ini belum terdaftar di WhatsApp",
+    });
+  }
   client
     .sendMessage(no, pesan)
+    .then((rs) => {
+      res.send(rs);
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: err.message || "Some error occurred while send message.",
+      });
+      console.log(err.message);
+    });
+});
+app.post("/wa-send-attach", async (req, res, next) => {
+  const no = phoneNumberFormatter(req.body.no);
+  const pesan = req.body.pesan;
+  const media = MessageMedia.fromFilePath(req.body.filePath);
+  //   res.send(req.body)
+
+  const isRegisteredNumber = await checkRegisteredNumber(no);
+  if (!isRegisteredNumber) {
+    return res.status(422).json({
+      status: false,
+      message: "Nomer ini belum terdaftar di WhatsApp",
+    });
+  }
+  // const media = MessageMedia.fromFilePath('./files/space-rocket-launch.png')
+
+  client
+    .sendMessage(no, media, {caption: pesan})
     .then((rs) => {
       res.send(rs);
     })
