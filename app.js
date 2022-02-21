@@ -16,6 +16,14 @@ app.use(express.json({ limit: "50mb" }));
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
+//izin browser
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', "*");
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'authorization, content-type');
+  next();
+})
+
 const SESSION_FILE_PATH = "./wa-session.json";
 let sessionCfg;
 if (fs.existsSync(SESSION_FILE_PATH)) {
